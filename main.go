@@ -12,8 +12,8 @@ func setupRouter() *gin.Engine {
 
 	client := r.Group("/api/client")
 	{
-		client.GET("/index-data", controllers.Getme)
-		client.GET("/contact-data", controllers.JsonResponse)
+		client.GET("/index-data", controllers.IndexData)
+		//client.GET("/post/:id", controllers.PostDetails)
 	}
 	return r
 }

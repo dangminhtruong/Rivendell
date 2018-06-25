@@ -2,32 +2,26 @@ package controllers
 
 import(
 	"github.com/gin-gonic/gin"
-	"database/sql"
-	"fmt"
 	"net/http"
+	"../database"
 )
 
-func Getme(c *gin.Context){
+func IndexData(c *gin.Context){
 	res := ""
-	db, err := sql.Open("mysql", "root:789852@/civ3")
-	if err != nil {
-		fmt.Println(err)
-		c.String(200, "Connect failure")	
-	}else{
-		rows, err := db.Query("SELECT username, email FROM civ3.users")
+	db := database.DBConn()
+	rows, err := db.Query("SELECT title, body FROM rivendell.posts")
 		if err != nil {
 			panic(err.Error())
 		}else{
 			for rows.Next() {
-                var username, email string
-				err = rows.Scan(&username, &email)
+                var title, body string
+				err = rows.Scan(&title, &body)
 				if err != nil {
 					panic(err.Error())
 				}
-				res += username + email
+				res += title + body
 			}
 			c.String(200, res)
-		}
 	}
 	defer db.Close()
 }
@@ -45,3 +39,19 @@ func JsonResponse(c *gin.Context){
 	// Will output  :   {"user": "Lena", "Message": "hey", "Number": 123}
 	c.JSON(http.StatusOK, msg)
 }
+
+/* func PostDetails(c *gin.Context){
+	type post struct {
+		Title string
+		Body string
+	}
+
+	type response struct {
+		Item post
+		Relative []post
+	}
+
+	
+
+	c.JSON(http.StatusOK, res)
+} */
