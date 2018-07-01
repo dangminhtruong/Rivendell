@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"./controllers"
 )
@@ -10,10 +11,18 @@ import (
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 
-	client := r.Group("/api/client")
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH"},
+		AllowHeaders:     []string{"X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, X-XSRF-TOKEN"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
+	client := r.Group("/api")
 	{
-		client.GET("/index-data", controllers.IndexData)
-		//client.GET("/post/:id", controllers.PostDetails)
+		client.GET("/index/stories", controllers.IndexData)
+		client.GET("/index/story/:id", controllers.StoryDetails)
 	}
 	return r
 }
