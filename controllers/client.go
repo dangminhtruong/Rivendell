@@ -9,11 +9,17 @@ type Story struct {
 	Id int `json:"id"`
 	Title string `json:"title"`
 	Content string `json:"body"`
+	UserId int `json:"userid"`
+	Username string `json:"username"`
 }
 
 func IndexData(c *gin.Context){
 	db := database.DBConn()
-	rows, err := db.Query("SELECT id, title, body FROM rivendell.posts")
+	rows, err := db.Query(
+		"SELECT posts.id, posts.title, posts.body, users.id as userid, users.username " + 
+		"FROM rivendell.posts, rivendell.users " +
+		"where posts.user_id = users.id",
+	)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -21,10 +27,10 @@ func IndexData(c *gin.Context){
 		response := []Story{}
 
 		for rows.Next() {
-			var id int
-			var title, body string
+			var id, userid int
+			var title, body, username string
 
-			err = rows.Scan(&id, &title, &body)
+			err = rows.Scan(&id, &title, &body, &userid, &username)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -32,6 +38,8 @@ func IndexData(c *gin.Context){
 			story.Id = id
 			story.Title = title
 			story.Content = body
+			story.UserId = userid
+			story.Username = username
 			
 			response = append(response, story)
 		}
