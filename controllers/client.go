@@ -72,3 +72,30 @@ func StoryDetails(c * gin.Context){
 
 	defer db.Close()
 }
+
+func Categories(c * gin.Context){
+	type Category struct{
+		Id int `json:"id"`
+		Name string `json:"name"`
+	}
+	db := database.DBConn()
+	rows, err := db.Query("SELECT * FROM rivendell.types")
+	if err != nil{
+		panic(err.Error())
+	}
+	response := []Category{}
+	for rows.Next(){
+		var id int
+		var name string
+		category := Category{}
+		err = rows.Scan(&id, &name)
+		if err != nil {
+			panic(err.Error())
+		}
+		category.Id = id
+		category.Name = name
+		response = append(response, category);
+	}
+	c.JSON(200, response)
+	defer db.Close()
+}

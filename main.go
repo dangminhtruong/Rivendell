@@ -23,6 +23,7 @@ func setupRouter() *gin.Engine {
 	{
 		client.GET("/index/stories", controllers.IndexData)
 		client.GET("/index/story/:id", controllers.StoryDetails)
+		client.GET("/index/categories", controllers.Categories);
 	}
 	return r
 }
