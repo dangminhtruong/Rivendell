@@ -21,9 +21,10 @@ func setupRouter() *gin.Engine {
 
 	client := r.Group("/api")
 	{
-		client.GET("/index/stories", controllers.IndexData)
+		client.GET("/index/stories/main", controllers.IndexData)
 		client.GET("/index/story/:id", controllers.StoryDetails)
-		client.GET("/index/categories", controllers.Categories);
+		client.GET("/index/categories", controllers.Categories)
+		client.GET("/index/stories/top-five", controllers.TopFourStories)
 	}
 	return r
 }
