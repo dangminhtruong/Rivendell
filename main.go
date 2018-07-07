@@ -10,7 +10,7 @@ import (
 
 func setupRouter() *gin.Engine {
 	r := gin.Default()
-
+	r.Static("/public", "./public")
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH"},
@@ -24,7 +24,8 @@ func setupRouter() *gin.Engine {
 		client.GET("/index/stories/main", controllers.IndexData)
 		client.GET("/index/story/:id", controllers.StoryDetails)
 		client.GET("/index/categories", controllers.Categories)
-		client.GET("/index/stories/top-five", controllers.TopFourStories)
+		client.GET("/index/stories/top-four", controllers.TopFourStories)
+		client.GET("/index/stories/top-five", controllers.TopFiveStories)
 	}
 	return r
 }

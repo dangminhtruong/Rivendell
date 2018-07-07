@@ -147,3 +147,42 @@ func TopFourStories(c * gin.Context){
 	c.JSON(200, response)
 	defer db.Close()
 }
+
+func TopFiveStories(c * gin.Context) {
+	type TopFiveItem struct{
+		Id int `json:"id"`
+		Title string `json:"title"`
+		Body string	`json:"body"`
+		Views int `json:"views"`
+	}
+
+	db :=  database.DBConn()
+	rows, err :=  db.Query("SELECT id, title, body, views FROM rivendell.posts ORDER BY posts.views desc LIMIT 4")
+	if err != nil {
+		c.JSON(500, gin.H{
+			"error": err.Error(),
+		})
+	}
+
+	response := []TopFiveItem{}
+	post := TopFiveItem{}
+	for rows.Next(){
+		var id, views int
+		var title, body string
+
+		err := rows.Scan(&id, &title, &body, &views)
+		if err != nil {
+			c.JSON(500, gin.H{
+				"error": err.Error(),
+			})
+		}
+		post.Id = id
+		post.Title = title
+		post.Body = body
+		post.Views = views
+		response = append(response, post)
+	}
+
+	c.JSON(200, response)
+	defer db.Close()
+}
