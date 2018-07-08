@@ -25,7 +25,7 @@ func setupRouter() *gin.Engine {
 		client.GET("/index/story/:id", controllers.StoryDetails)
 		client.GET("/index/categories", controllers.Categories)
 		client.GET("/index/stories/top-four", controllers.TopFourStories)
-		client.GET("/index/stories/top-five", controllers.TopFiveStories)
+		client.GET("/index/stories/random", controllers.TopFiveStories)
 	}
 	return r
 }

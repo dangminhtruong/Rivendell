@@ -157,7 +157,7 @@ func TopFiveStories(c * gin.Context) {
 	}
 
 	db :=  database.DBConn()
-	rows, err :=  db.Query("SELECT id, title, body, views FROM rivendell.posts ORDER BY posts.views desc LIMIT 4")
+	rows, err :=  db.Query("SELECT id, title, body, views FROM rivendell.posts ORDER BY RAND() LIMIT 5")
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
