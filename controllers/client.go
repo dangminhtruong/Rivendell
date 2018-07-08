@@ -18,7 +18,7 @@ func IndexData(c *gin.Context){
 	rows, err := db.Query(
 		"SELECT posts.id, posts.title, posts.body, users.id as userid, users.username " + 
 		"FROM rivendell.posts, rivendell.users " +
-		"where posts.user_id = users.id",
+		"WHERE posts.user_id = users.id",
 	)
 		if err != nil {
 			panic(err.Error())
@@ -53,7 +53,9 @@ func IndexData(c *gin.Context){
 func StoryDetails(c * gin.Context){
 
 	db := database.DBConn()
-	rows, err := db.Query("SELECT id, title, body FROM rivendell.posts where id = " + c.Param("id"))
+	rows, err := db.Query("SELECT posts.id, title, body, username, user_id as userid " +
+		"FROM rivendell.posts, rivendell.users WHERE posts.id = " + c.Param("id") + 
+		" AND posts.user_id = users.id")
 	if err != nil{
 		c.JSON(500, gin.H{
 			"messages" : "Story not found",
@@ -63,10 +65,10 @@ func StoryDetails(c * gin.Context){
 	story := Story{}
 
 	for rows.Next(){
-		var id int
-		var title, body string
+		var id, userid int
+		var title, body, username string
 
-		err = rows.Scan(&id, &title, &body)
+		err = rows.Scan(&id, &title, &body, &username, &userid)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -74,6 +76,8 @@ func StoryDetails(c * gin.Context){
 		story.Id = id
 		story.Title = title
 		story.Content = body
+		story.Username = username
+		story.UserId = userid
 	}
 
 	c.JSON(200, story)
