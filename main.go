@@ -19,14 +19,20 @@ func setupRouter() *gin.Engine {
 		AllowCredentials: true,
 	}))
 
-	client := r.Group("/api")
+	client := r.Group("/client")
 	{
-		client.GET("/index/stories/main", controllers.IndexData)
-		client.GET("/index/story/:id", controllers.StoryDetails)
-		client.GET("/index/categories", controllers.Categories)
-		client.GET("/index/stories/top-four", controllers.TopFourStories)
-		client.GET("/index/stories/random", controllers.TopFiveStories)
+		client.GET("/stories/main", controllers.IndexData)
+		client.GET("/story/:id", controllers.StoryDetails)
+		client.GET("/categories", controllers.Categories)
+		client.GET("/stories/top-four", controllers.TopFourStories)
+		client.GET("/stories/random", controllers.TopFiveStories)
 	}
+
+	admin := r.Group("/admin")
+	{
+		admin.POST("/story/create", controllers.CreateNewPost)
+	}
+
 	return r
 }
 
