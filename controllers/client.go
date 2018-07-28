@@ -3,6 +3,7 @@ package controllers
 import(
 	"github.com/gin-gonic/gin"
 	"../database"
+	"../helpers"
 )
 
 type Story struct {
@@ -18,7 +19,7 @@ func IndexData(c *gin.Context){
 	rows, err := db.Query(
 		"SELECT posts.id, posts.title, posts.body, users.id as userid, users.username " + 
 		"FROM rivendell.posts, rivendell.users " +
-		"where posts.user_id = users.id",
+		"WHERE posts.user_id = users.id",
 	)
 		if err != nil {
 			panic(err.Error())
@@ -53,7 +54,9 @@ func IndexData(c *gin.Context){
 func StoryDetails(c * gin.Context){
 
 	db := database.DBConn()
-	rows, err := db.Query("SELECT id, title, body FROM rivendell.posts where id = " + c.Param("id"))
+	rows, err := db.Query("SELECT posts.id, title, body, username, user_id as userid " +
+		"FROM rivendell.posts, rivendell.users WHERE posts.id = " + c.Param("id") + 
+		" AND posts.user_id = users.id")
 	if err != nil{
 		c.JSON(500, gin.H{
 			"messages" : "Story not found",
@@ -63,10 +66,10 @@ func StoryDetails(c * gin.Context){
 	story := Story{}
 
 	for rows.Next(){
-		var id int
-		var title, body string
+		var id, userid int
+		var title, body, username string
 
-		err = rows.Scan(&id, &title, &body)
+		err = rows.Scan(&id, &title, &body, &username, &userid)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -74,6 +77,8 @@ func StoryDetails(c * gin.Context){
 		story.Id = id
 		story.Title = title
 		story.Content = body
+		story.Username = username
+		story.UserId = userid
 	}
 
 	c.JSON(200, story)
@@ -157,7 +162,7 @@ func TopFiveStories(c * gin.Context) {
 	}
 
 	db :=  database.DBConn()
-	rows, err :=  db.Query("SELECT id, title, body, views FROM rivendell.posts ORDER BY posts.views desc LIMIT 4")
+	rows, err :=  db.Query("SELECT id, title, body, views FROM rivendell.posts ORDER BY RAND() LIMIT 4")
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
@@ -186,3 +191,55 @@ func TopFiveStories(c * gin.Context) {
 	c.JSON(200, response)
 	defer db.Close()
 }
+
+func SignUp(c * gin.Context) {
+	type ReqData struct{
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	var req ReqData
+	db := database.DBConn()
+
+	if err := c.ShouldBindJSON(&req); err == nil {
+		insUser, insErr := db.Prepare("INSERT INTO users(username, password, token) VALUES(?,?,?)")
+		if insErr != nil {
+			c.JSON(500, gin.H{
+				"messages" : insErr,
+			})
+		}
+		insUser.Exec(req.Username, req.Password, helpers.CreateToken(req.Username, req.Password)) 
+		c.JSON(200, gin.H{
+			"messages" : "Successfull",
+		})
+	} else {
+		c.JSON(500, gin.H{"error": err.Error()})
+	}
+	
+	defer db.Close()
+}
+
+func SignIn(c * gin.Context){
+	type ReqData struct{
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+	var token string
+	var req ReqData
+	db := database.DBConn()
+
+	if err := c.ShouldBindJSON(&req); err == nil {
+		rows :=  db.QueryRow("SELECT token FROM users where username='" +
+							req.Username + "' and password='" + req.Password + "'")
+		reErr := rows.Scan(&token)
+		if reErr != nil {
+			c.JSON(500, gin.H{
+				"error": reErr.Error(),
+			})
+		}else{
+			c.JSON(200, token)
+		}	
+	}
+
+	defer db.Close()
+}
+

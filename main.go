@@ -6,27 +6,33 @@ import (
 	"./controllers"
 )
 
-
-
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Static("/public", "./public")
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowAllOrigins: true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH"},
-		AllowHeaders:     []string{"X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, X-XSRF-TOKEN"},
+		AllowHeaders:     []string{"Access-Control-Allow-Headers, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, X-XSRF-TOKEN"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
 
-	client := r.Group("/api")
+	client := r.Group("/client")
 	{
-		client.GET("/index/stories/main", controllers.IndexData)
-		client.GET("/index/story/:id", controllers.StoryDetails)
-		client.GET("/index/categories", controllers.Categories)
-		client.GET("/index/stories/top-four", controllers.TopFourStories)
-		client.GET("/index/stories/top-five", controllers.TopFiveStories)
+		client.GET("/stories/main", controllers.IndexData)
+		client.GET("/story/:id", controllers.StoryDetails)
+		client.GET("/categories", controllers.Categories)
+		client.GET("/stories/top-four", controllers.TopFourStories)
+		client.GET("/stories/random", controllers.TopFiveStories)
 	}
+
+	admin := r.Group("/admin")
+	{
+		admin.POST("/story/create", controllers.CreateNewPost)
+		admin.POST("/signup", controllers.SignUp)
+		admin.POST("/login", controllers.SignIn)
+	}
+
 	return r
 }
 
