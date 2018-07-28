@@ -3,6 +3,7 @@ package controllers
 import(
 	"github.com/gin-gonic/gin"
 	"../database"
+	"../helpers"
 )
 
 type Story struct {
@@ -161,7 +162,7 @@ func TopFiveStories(c * gin.Context) {
 	}
 
 	db :=  database.DBConn()
-	rows, err :=  db.Query("SELECT id, title, body, views FROM rivendell.posts ORDER BY RAND() LIMIT 5")
+	rows, err :=  db.Query("SELECT id, title, body, views FROM rivendell.posts ORDER BY RAND() LIMIT 4")
 	if err != nil {
 		c.JSON(500, gin.H{
 			"error": err.Error(),
@@ -190,3 +191,55 @@ func TopFiveStories(c * gin.Context) {
 	c.JSON(200, response)
 	defer db.Close()
 }
+
+func SignUp(c * gin.Context) {
+	type ReqData struct{
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	var req ReqData
+	db := database.DBConn()
+
+	if err := c.ShouldBindJSON(&req); err == nil {
+		insUser, insErr := db.Prepare("INSERT INTO users(username, password, token) VALUES(?,?,?)")
+		if insErr != nil {
+			c.JSON(500, gin.H{
+				"messages" : insErr,
+			})
+		}
+		insUser.Exec(req.Username, req.Password, helpers.CreateToken(req.Username, req.Password)) 
+		c.JSON(200, gin.H{
+			"messages" : "Successfull",
+		})
+	} else {
+		c.JSON(500, gin.H{"error": err.Error()})
+	}
+	
+	defer db.Close()
+}
+
+func SignIn(c * gin.Context){
+	type ReqData struct{
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+	var token string
+	var req ReqData
+	db := database.DBConn()
+
+	if err := c.ShouldBindJSON(&req); err == nil {
+		rows :=  db.QueryRow("SELECT token FROM users where username='" +
+							req.Username + "' and password='" + req.Password + "'")
+		reErr := rows.Scan(&token)
+		if reErr != nil {
+			c.JSON(500, gin.H{
+				"error": reErr.Error(),
+			})
+		}else{
+			c.JSON(200, token)
+		}	
+	}
+
+	defer db.Close()
+}
+

@@ -6,15 +6,13 @@ import (
 	"./controllers"
 )
 
-
-
 func setupRouter() *gin.Engine {
 	r := gin.Default()
 	r.Static("/public", "./public")
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000"},
+		AllowAllOrigins: true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH"},
-		AllowHeaders:     []string{"X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, X-XSRF-TOKEN"},
+		AllowHeaders:     []string{"Access-Control-Allow-Headers, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, X-XSRF-TOKEN"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 	}))
@@ -31,6 +29,8 @@ func setupRouter() *gin.Engine {
 	admin := r.Group("/admin")
 	{
 		admin.POST("/story/create", controllers.CreateNewPost)
+		admin.POST("/signup", controllers.SignUp)
+		admin.POST("/login", controllers.SignIn)
 	}
 
 	return r
